@@ -6,9 +6,11 @@ library(xgboost)
 library(caret)
 library(scales)
 
+set.seed(0)
+
 #----------- Read data, split out validation set and split out labels
 train <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/train.csv')
-test <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/train.csv')
+test <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/test.csv')
 
 # # Use important features only
 # train <- train[, c('isolectric_point', 'E_count', 'K_count', 'E_first50_count',  'aromaticity','L_first50_count',

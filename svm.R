@@ -11,7 +11,7 @@ set.seed(0)
 
 # Read and split the data
 train <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/train.csv')
-test <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/train.csv')
+test <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/test.csv')
 
 smp_size <- floor(0.75 * nrow(train))
 train_ind <- sample(seq_len(nrow(train)), size = smp_size)
@@ -69,10 +69,6 @@ predSVM <- function(model) {
 
 model <- svm(X_train, y_train, cost=2, gamma=0.005, probability = TRUE)
 predSVM(model)
-
-
-
-
 
 
 
