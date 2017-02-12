@@ -12,12 +12,12 @@ set.seed(0)
 train <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/train.csv')
 test <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/test.csv')
 
-# # Use important features only
+# Use important features only
 # train <- train[, c('isolectric_point', 'E_count', 'K_count', 'E_first50_count',  'aromaticity','L_first50_count',
 #                    'molecular_weight', 'C_count','L_count', 'G_count', 'P_count', 'Q_count', 'D_first50_count',
 #                    'N_count', 'I_count', 'M_count','K_first50_count',  'sequence_length',  'G_first50_count',
 #                    'H_count', 'A_count', 'D_count', 'A_first50_count', 'C_first50_count', 'F_count', 'name', 'sequence', 'class')]
-# 
+
 # test <- test[, c('isolectric_point', 'E_count', 'K_count', 'E_first50_count',  'aromaticity','L_first50_count',
 #                    'molecular_weight', 'C_count','L_count', 'G_count', 'P_count', 'Q_count', 'D_first50_count',
 #                    'N_count', 'I_count', 'M_count','K_first50_count',  'sequence_length',  'G_first50_count',
@@ -51,6 +51,7 @@ xgb_params = list(
   colsample_bytree = 0.7,
   subsample = 0.7,
   objective = 'multi:softmax',
+  # objective = 'multi:softprob',  # For getting class probabilities
   max_depth = 10,
   alpha = 1,
   lambda = 5,
@@ -59,7 +60,7 @@ xgb_params = list(
   num_class = 4
 )
 
-best_n_rounds = 100
+best_n_rounds = 32
 
 # train data
 gb_dt = xgb.train(xgb_params, dtrain, nrounds = as.integer(best_n_rounds))
@@ -72,13 +73,16 @@ val_pred = predict(gb_dt, dval)
 print("Validation Accuracy:")
 print(sum(val_pred==y_val)/length(y_val))
 
-# Feature importance
-importance_model <- xgb.importance(feature_names = names(X_train), model = gb_dt)
-important_features <- importance_model$Feature[1:25]
+# # Feature importance
+# importance_model <- xgb.importance(feature_names = names(X_train), model = gb_dt)
+# important_features <- importance_model$Feature[1:25]
+# 
+# importance_model$Feature <- factor(importance_model$Feature)
+# importance_model$Feature <- reorder(importance_model$Feature, -importance_model$Gain)
+# 
+# g <- ggplot(data=importance_model, aes(x=Feature, y=Gain, fill=Feature)) + geom_bar(stat='identity')
+# g <- g + labs(x='Feature', y='Contribution to Model') + coord_flip() + guides(fill=FALSE)
+# g + scale_x_discrete(limits = rev(levels(importance_model$Feature))) + scale_y_continuous(breaks=seq(0, 0.1, 0.01), labels=percent)
 
-importance_model$Feature <- factor(importance_model$Feature)
-importance_model$Feature <- reorder(importance_model$Feature, -importance_model$Gain)
 
-g <- ggplot(data=importance_model, aes(x=Feature, y=Gain, fill=Feature)) + geom_bar(stat='identity')
-g <- g + labs(x='Feature', y='Contribution to Model') + coord_flip() + guides(fill=FALSE)
-g + scale_x_discrete(limits = rev(levels(importance_model$Feature))) + scale_y_continuous(breaks=seq(0, 0.1, 0.01), labels=percent)
+

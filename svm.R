@@ -13,6 +13,13 @@ set.seed(0)
 train <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/train.csv')
 test <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/test.csv')
 
+# train <- train[, c("L_first50_count", "L_last50_count",  "A_first50_count", "A_last50_count",  "V_first50_count", 
+#                    "V_last50_count", "molecular_weight", "sequence_length", "K_first50_count", "K_last50_count",  
+#                    "F_first50_count", "F_last50_count", "second_helix","aromaticity", "E_count","isolectric_point",
+#                    "K_count","V_count","E_first50_count", "E_last50_count",  "R_first50_count", "R_last50_count",
+#                    "M_first50_count", "M_last50_count", "W_first50_count", "W_last50_count",  "F_count","S_count",
+#                    "M_count","S_first50_count", 'name', 'sequence', 'class')]
+
 smp_size <- floor(0.75 * nrow(train))
 train_ind <- sample(seq_len(nrow(train)), size = smp_size)
 train_set <- train[train_ind, ]
@@ -71,6 +78,20 @@ model <- svm(X_train, y_train, cost=2, gamma=0.005, probability = TRUE)
 predSVM(model)
 
 
+# Feature importance
+W <- subset(data.table(melt(t(model$coefs) %*% model$SV)), select=-Var1)
+W$value <- abs(W$value)
+W <- W[, lapply(.SD, mean), by=Var2]
+# W$value <- abs(W$value)
+W <- W[order(-value), ][1:30]
+setnames(W, names(W), c('Feature', 'mean_coef_weight'))
+W$Feature <- factor(W$Feature)
+W$Feature <- reorder(W$Feature, -W$mean_coef_weight)
 
+g <- ggplot(data=W, aes(x=Feature, y=mean_coef_weight, fill=Feature)) + geom_bar(stat='identity')
+g <- g + labs(x='Feature', y='Mean Coef Weight') + coord_flip() + guides(fill=FALSE)
+g + scale_x_discrete(limits = rev(levels(W$Feature)))
+
+# as.character(W$Feature)
 
 
