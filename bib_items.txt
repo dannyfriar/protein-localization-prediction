@@ -3,3 +3,6 @@ https://en.wikipedia.org/wiki/Signal_peptide - signal peptide wiki
 P. 946-950 of stryer book - signal peptide, protein
 http://www.cryst.bbk.ac.uk/pps97/assignments/projects/dulai/signal.html#NP - signal peptides by location
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4343182/ - signal peptide database
+http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-14-342 - for possible improvements to the model
+http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-14-342 - novel approach subcellular location prediction
+https://en.wikipedia.org/wiki/Nuclear_localization_sequence - nuclear signal tagging
