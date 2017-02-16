@@ -9,6 +9,13 @@ library(scales)
 #----------- Read data, split out validation set and split out labels
 train <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/train.csv')
 train$class <- factor(train$class, levels = c('cyto', 'secreted', 'mito', 'nuclear'), labels = c('Cytoplasm', 'Secreted', 'Mitochondria', 'Nuclear'))
+# 
+# train <- data.table(train)
+# train <- subset(train[class=='Nuclear'], select=c(class, sequence))
+# train$sequence <- as.character(train$sequence)
+# train$end_seq <- substr(train$sequence, nchar(train$sequence)-9, nchar(train$sequence))
+# train$first_seq <- substr(train$sequence, 1, 10)
+# train$sequence <- NULL
 
 # Plot of class
 g <- ggplot(data=train, aes(x=class, fill=class)) + geom_bar() + labs(x='Subcelluar Location', y='Count')

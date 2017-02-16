@@ -4,6 +4,9 @@ library(caret)
 library(scales)
 library(randomForest)
 library(SDMTools)
+library(ROCR)
+library(pROC)
+library(klaR)
 
 set.seed(0)
 
@@ -68,18 +71,48 @@ g + scale_x_discrete(limits = rev(levels(importance$Feature)))
 # save(important_features, file = "~/Desktop/CSML/bioinformatics/coursework/important_features.RData")
 
 
-# #------ Assess performance on test set
-# X_train <- rbind(X_train, X_val)
-# y_train <- factor(c(as.character(y_train), as.character(y_val)), level=c('cyto', 'mito', 'nuclear', 'secreted'))
-# train_set <- X_train
-# train_set$y <- y_train
-# rf_model <- randomForest(y ~ ., data=train_set, ntree = 100, mtry = 9, nodesize=1)
-# 
-# # Accuracy
-# test_pred <- predict(rf_model, newdata=X_test)
-# print("Test Accuracy:")
-# print(sum(test_pred==y_test)/length(y_test))
-# 
-# # Confusion matrix
-# table(y_test, test_pred)
+#------ Assess performance on test set
+X_train <- rbind(X_train, X_val)
+y_train <- factor(c(as.character(y_train), as.character(y_val)), level=c('cyto', 'mito', 'nuclear', 'secreted'))
+train_set <- X_train
+train_set$y <- y_train
+rf_model <- randomForest(y ~ ., data=train_set, ntree = 100, mtry = 9, nodesize=1)
+
+# Accuracy
+test_pred <- predict(rf_model, newdata=X_test)
+print("Test Accuracy:")
+print(sum(test_pred==y_test)/length(y_test))
+
+# Confusion matrix
+table(y_test, test_pred)
+
+# ROC curve
+test_pred_prob <- data.table(data.frame(predict(rf_model, newdata=X_test, type='prob')))
+test_pred_prob$prediction <- test_pred
+test_pred_prob$true_label <- y_test
+class_prob_all <- data.frame()
+
+for (class_name in c('cyto', 'mito', 'nuclear', 'secreted')) {
+  class_prob <- subset(test_pred_prob, select=c(eval(as.symbol(class_name)), prediction, true_label))[order(-eval(as.symbol(class_name)))]
+  class_prob$FP <- 0; class_prob$TP <- 0
+  class_prob[class_prob$prediction == class_name & class_prob$true_label == class_name, ]$TP <- 1
+  class_prob[class_prob$prediction == class_name & class_prob$true_label != class_name, ]$FP <- 1
+  class_prob$pos <- 0; class_prob$neg <- 0
+  class_prob[class_prob$true_label == class_name, ]$pos <- 1
+  class_prob[class_prob$true_label != class_name, ]$neg <- 1
+  class_prob$TPR <- cumsum(class_prob$TP) / sum(class_prob$TP)
+  class_prob$FPR <- cumsum(class_prob$FP) /sum(class_prob$FP)
+  class_prob <- subset(class_prob, select=c(TPR, FPR))
+  class_prob$class <- class_name
+  class_prob_all <- rbind(class_prob_all, class_prob)
+}
+
+class_prob_all$class <- factor(class_prob_all$class)
+g <- ggplot(data=class_prob_all, aes(x=FPR, y=TPR, color=class)) + geom_line(size=0.8)
+g <- g + labs(x='False positive rate', y='True positive rate', color='Protein location class')
+g + theme(legend.position="top")
+
+
+
+##----- Predictions on blind test set
 
