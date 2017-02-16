@@ -6,3 +6,5 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4343182/ - signal peptide database
 http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-14-342 - for possible improvements to the model
 http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-14-342 - novel approach subcellular location prediction
 https://en.wikipedia.org/wiki/Nuclear_localization_sequence - nuclear signal tagging
+http://www.sbc.su.se/~maccallr/publications/heddad-evobio2004.pdf - Evolving Regular Expression-based Sequence Classifiers for
+Protein Nuclear Localisation

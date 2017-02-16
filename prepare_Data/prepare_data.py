@@ -36,12 +36,14 @@ def fasta_to_pandas(file):
 	fasta_data['molecular_weight'] = []
 	fasta_data['isolectric_point'] = []
 	fasta_data['aromaticity'] = []
+	fasta_data['hydrophobicity'] = []
 	fasta_data['second_helix'] = []
 	fasta_data['second_turn'] = []
 	fasta_data['second_sheet'] = []
 	fasta_data['pct_pos_charged'] = []
 	fasta_data['pct_neg_charged'] = []
 	fasta_data['pct_hydrophobic'] = []
+
 	
 	for amino in amino_acids:
 		key_string = amino + '_count'
@@ -67,6 +69,7 @@ def fasta_to_pandas(file):
 		fasta_data['molecular_weight'].append(proto_param.molecular_weight())
 		fasta_data['isolectric_point'].append(proto_param.isoelectric_point())
 		fasta_data['aromaticity'].append(proto_param.aromaticity())
+		fasta_data['hydrophobicity'].append(proto_param.gravy())
 
 		secondary_struct_list = proto_param.secondary_structure_fraction()
 		fasta_data['second_helix'].append(secondary_struct_list[0])
@@ -76,7 +79,7 @@ def fasta_to_pandas(file):
 		fasta_data['pct_pos_charged'].append((sequence.count('H')+sequence.count('K')+sequence.count('R'))/len(sequence))
 		fasta_data['pct_neg_charged'].append((sequence.count('D')+sequence.count('E'))/len(sequence))
 		fasta_data['pct_hydrophobic'].append(count_hydrophobic(sequence)/len(sequence))
-		
+
 		for amino in amino_acids:
 			key_string = amino + '_count'
 			fasta_data[key_string].append(sequence.count(amino)/len(sequence))
