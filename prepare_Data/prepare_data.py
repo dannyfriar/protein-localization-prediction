@@ -2,8 +2,8 @@
 from __future__ import division
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import random
+import csv
 import matplotlib.pyplot as plt
 
 from collections import OrderedDict
@@ -11,8 +11,26 @@ from Bio import SeqIO
 from Bio.SeqUtils import ProtParam
 from sklearn.model_selection import train_test_split
 
+# Amino acid list
 amino_acids = ['A', 'C', 'E', 'D', 'G', 'F', 'I', 'H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y']
 non_amino_letters = ['B', 'J', 'O', 'U', 'X', 'Z']
+
+# NLS signals list
+with open('../data/NLS_signals.csv', 'rb') as f:
+    reader = csv.reader(f)
+    nls_signal_list = list(reader)
+    
+nls_signal_list = nls_signal_list[1:]
+nls_signal_list = [item for sublist in nls_signal_list for item in sublist]
+
+
+def check_nls_signal(sequence):
+	"""Check sequence for some known NLS signals"""
+	nls_count = 0
+	for signal in nls_signal_list:
+		nls_count += sequence.count(signal)
+	return(nls_count)
+
 
 def count_hydrophobic(sequence):
 	"""Returns count of hydrophobic amino acids"""
@@ -43,8 +61,8 @@ def fasta_to_pandas(file):
 	fasta_data['pct_pos_charged'] = []
 	fasta_data['pct_neg_charged'] = []
 	fasta_data['pct_hydrophobic'] = []
+	fasta_data['nls_count'] = []
 
-	
 	for amino in amino_acids:
 		key_string = amino + '_count'
 		fasta_data[key_string] = []
@@ -79,6 +97,7 @@ def fasta_to_pandas(file):
 		fasta_data['pct_pos_charged'].append((sequence.count('H')+sequence.count('K')+sequence.count('R'))/len(sequence))
 		fasta_data['pct_neg_charged'].append((sequence.count('D')+sequence.count('E'))/len(sequence))
 		fasta_data['pct_hydrophobic'].append(count_hydrophobic(sequence)/len(sequence))
+		fasta_data['nls_count'].append(check_nls_signal(sequence))
 
 		for amino in amino_acids:
 			key_string = amino + '_count'

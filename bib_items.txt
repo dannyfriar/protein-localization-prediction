@@ -8,3 +8,4 @@ http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-14-342 - n
 https://en.wikipedia.org/wiki/Nuclear_localization_sequence - nuclear signal tagging
 http://www.sbc.su.se/~maccallr/publications/heddad-evobio2004.pdf - Evolving Regular Expression-based Sequence Classifiers for
 Protein Nuclear Localisation
+http://genome.unmc.edu/LocSigDB/ - NLS database
