@@ -22,6 +22,7 @@ with open('../data/NLS_signals.csv', 'rb') as f:
     
 nls_signal_list = nls_signal_list[1:]
 nls_signal_list = [item for sublist in nls_signal_list for item in sublist]
+nls_signal_list = [signal for signal in nls_signal_list if len(signal)>3]  # Remove NLS signals that may show up by chance
 
 
 def check_nls_signal(sequence):
@@ -29,7 +30,10 @@ def check_nls_signal(sequence):
 	nls_count = 0
 	for signal in nls_signal_list:
 		nls_count += sequence.count(signal)
-	return(nls_count)
+	if nls_count > 0:
+		# return(nls_count)
+		return 1
+	return 0
 
 
 def count_hydrophobic(sequence):
@@ -61,7 +65,7 @@ def fasta_to_pandas(file):
 	fasta_data['pct_pos_charged'] = []
 	fasta_data['pct_neg_charged'] = []
 	fasta_data['pct_hydrophobic'] = []
-	fasta_data['nls_count'] = []
+	fasta_data['nls_present'] = []
 
 	for amino in amino_acids:
 		key_string = amino + '_count'
@@ -97,7 +101,7 @@ def fasta_to_pandas(file):
 		fasta_data['pct_pos_charged'].append((sequence.count('H')+sequence.count('K')+sequence.count('R'))/len(sequence))
 		fasta_data['pct_neg_charged'].append((sequence.count('D')+sequence.count('E'))/len(sequence))
 		fasta_data['pct_hydrophobic'].append(count_hydrophobic(sequence)/len(sequence))
-		fasta_data['nls_count'].append(check_nls_signal(sequence))
+		fasta_data['nls_present'].append(check_nls_signal(sequence))
 
 		for amino in amino_acids:
 			key_string = amino + '_count'
@@ -111,7 +115,6 @@ def fasta_to_pandas(file):
 
 
 def main():
-
 
 	print("#-------- Loading and parsing sequence files")
 	# Loading train files

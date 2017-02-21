@@ -29,6 +29,10 @@ g + ylim(0, 200000)
 g <- ggplot(data=train, aes(x=class, y=isolectric_point, fill=class)) + geom_boxplot() + labs(y='Isolectric Point', x='Subcelluar Location') + guides(fill=FALSE)
 g
 
+# Plot NLS signals counts against class
+g <- ggplot(data=train, aes(x=class, y=nls_count, fill=class)) + geom_boxplot() + labs(y='NLS signals', x='Subcelluar Location') + guides(fill=FALSE)
+g
+
 # Plot of sequence length against molecular weights
 g <- ggplot(data=train, aes(x=class, y=sequence_length, fill=class)) + geom_boxplot() + labs(y='Sequence Length', x='Subcelluar Location') + guides(fill=FALSE)
 g + ylim(0, 1500)

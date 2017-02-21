@@ -12,6 +12,15 @@ set.seed(0)
 
 #----------- Part 1: Read data, split out validation set and split out labels
 train <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/train.csv')
+
+# Downsampling and resampling to even class distributions
+nuclear_train <- train[train$class=='nuclear', ]
+train <- rbind(train, nuclear_train)  # resample nuclear class
+cyto_train <- train[train$class == 'cyto', ][sample(1200), ]
+train <- train[train$class != 'cyto', ]
+train <- rbind(train, cyto_train)
+train <- train[sample(nrow(train)), ]
+
 test <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/test.csv')
 blind_test <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/blind_test.csv')
 
