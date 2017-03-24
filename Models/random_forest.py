@@ -41,7 +41,7 @@ def main():
 	    'min_samples_leaf': [1, 2, 3]
 	}
 
-	grid_rf = GridSearchCV(rf, param_grid, cv=2, verbose=3)
+	grid_rf = GridSearchCV(rf, param_grid, cv=5, verbose=3)
 	grid_rf.fit(X_train, y_train)
 	print("#-------- DONE WITH GRID SEARCH.")
 	best_model = grid_rf.best_estimator_
