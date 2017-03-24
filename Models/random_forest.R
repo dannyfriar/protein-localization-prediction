@@ -12,15 +12,6 @@ set.seed(0)
 
 #----------- Part 1: Read data, split out validation set and split out labels
 train <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/train.csv')
-
-# Downsampling and resampling to even class distributions
-nuclear_train <- train[train$class=='nuclear', ]
-train <- rbind(train, nuclear_train)  # resample nuclear class
-cyto_train <- train[train$class == 'cyto', ][sample(1200), ]
-train <- train[train$class != 'cyto', ]
-train <- rbind(train, cyto_train)
-train <- train[sample(nrow(train)), ]
-
 test <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/test.csv')
 blind_test <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/blind_test.csv')
 
@@ -50,7 +41,7 @@ X_test <- subset(test, select=-c(name, class, sequence))
 #-------- Part 2: Fit Random Forest model
 train_set <- X_train
 train_set$y <- y_train
-rf_model <- randomForest(y ~ ., data=train_set, ntree = 500, mtry = 9, nodesize=1)
+rf_model <- randomForest(y ~ ., data=train_set, ntree = 1000, mtry = 20, nodesize=1)
 
 # Train and validation set predictions
 train_pred <- predict(rf_model)
@@ -61,13 +52,15 @@ table(y_train, train_pred)
 val_pred <- predict(rf_model, newdata=X_val)
 print("Validation Accuracy:")
 print(sum(val_pred==y_val)/length(y_val))
+table(y_val, val_pred)
+print(xtable(data.frame(table(y_val, val_pred))), include.rownames=FALSE) # latex table format
 
 # Feature importance
 importance <- data.frame(rf_model$importance)
 importance$Feature <- rownames(importance)
 importance <- data.table(importance)[order(-MeanDecreaseGini), ]
 setcolorder(importance, c('Feature', 'MeanDecreaseGini'))
-importance <- importance[MeanDecreaseGini>=29]
+importance <- importance[MeanDecreaseGini>=46]  # median value
 importance$Feature <- factor(importance$Feature)
 importance$Feature <- reorder(importance$Feature, -importance$MeanDecreaseGini)
 
@@ -76,24 +69,29 @@ g <- ggplot(data=importance, aes(x=Feature, y=MeanDecreaseGini, fill=Feature)) +
 g <- g + labs(x='Feature', y='Mean Decrease Gini Index') + coord_flip() + guides(fill=FALSE)
 g + scale_x_discrete(limits = rev(levels(importance$Feature)))
 
-png(filename="~/Desktop/CSML/bioinformatics/coursework/figures/feature_importance.png")
+png(filename="~/Desktop/CSML/bioinformatics/coursework/figures/feature_importance.pdf")
 g + scale_x_discrete(limits = rev(levels(importance$Feature)))
 dev.off()
 
-# # Save importance features for later use
-# important_features <- as.character(importance$Feature)
-# important_features <- c(important_features, 'name', 'sequence', 'class')
-# save(important_features, file = "~/Desktop/CSML/bioinformatics/coursework/important_features.RData")
+# Save importance features for later use
+important_features <- as.character(importance$Feature)
+important_features <- c(important_features, 'name', 'sequence', 'class')
+save(important_features, file = "~/Desktop/CSML/bioinformatics/coursework/important_features.RData")
 
 
 #------ Part 3: Assess performance on test set
-X_train <- rbind(X_train, X_val)
-y_train <- factor(c(as.character(y_train), as.character(y_val)), level=c('cyto', 'mito', 'nuclear', 'secreted'))
+
+# Re-train on full training set
+train <- read.csv('~/Desktop/CSML/bioinformatics/coursework/data/train.csv')
+train <- train[, important_features]  # important features only
+y_train <- factor(train$class, level=c('cyto', 'mito', 'nuclear', 'secreted'))
+X_train <- subset(train, select=-c(name, class, sequence))
 train_set <- X_train
 train_set$y <- y_train
-rf_model <- randomForest(y ~ ., data=train_set, ntree = 100, mtry = 9, nodesize=1)
+rf_model <- randomForest(y ~ ., data=train_set, ntree = 1000, mtry = 20, nodesize=1)
+train_pred <- predict(rf_model)
 
-# Accuracy
+# Test set accuracy
 test_pred <- predict(rf_model, newdata=X_test)
 print("Test Accuracy:")
 print(sum(test_pred==y_test)/length(y_test))
@@ -112,13 +110,9 @@ auc_scores <- c()
 
 for (class_name in c('cyto', 'mito', 'nuclear', 'secreted')) {
   class_prob <- subset(test_pred_prob, select=c(eval(as.symbol(class_name)), prediction, true_label))[order(-eval(as.symbol(class_name)))]
+  print(names(class_prob))
   
-  # AUC score
-  prob_scores <- as.numeric(unlist(subset(class_prob, select=eval(as.symbol(class_name)))))
-  area <- auc(as.numeric(class_prob$true_label==class_name), prob_scores)[1]
-  auc_scores <- c(auc_scores, area)
-  
-  # ROC curve
+  # ROC curve and calculate AUC score
   class_prob$FP <- 0; class_prob$TP <- 0
   class_prob[class_prob$prediction == class_name & class_prob$true_label == class_name, ]$TP <- 1
   class_prob[class_prob$prediction == class_name & class_prob$true_label != class_name, ]$FP <- 1
@@ -128,14 +122,18 @@ for (class_name in c('cyto', 'mito', 'nuclear', 'secreted')) {
   class_prob$TPR <- cumsum(class_prob$TP) / sum(class_prob$TP)
   class_prob$FPR <- cumsum(class_prob$FP) /sum(class_prob$FP)
   class_prob <- subset(class_prob, select=c(TPR, FPR))
+  n <- nrow(class_prob)
+  
+  area <- sum(((class_prob$TPR[-1]+class_prob$TPR[-n])/2) * (class_prob$FPR[-1]-class_prob$FPR[-n]))
+  auc_scores <- c(auc_scores, area)
   class_prob$class <- class_name
   class_prob_all <- rbind(class_prob_all, class_prob)
 }
 
 class_prob_all$class <- factor(class_prob_all$class)
 g <- ggplot(data=class_prob_all, aes(x=FPR, y=TPR, color=class)) + geom_line(size=0.8)
-g <- g + labs(x='False positive rate', y='True positive rate', color='Protein location class')
-g + theme(legend.position="top")
+g <- g + labs(x='False positive rate', y='True positive rate', color='')
+g + theme(legend.position="top") + geom_abline(intercept=0, slope=1, linetype = 3) + ylim(c(0, 1)) + xlim(c(0, 1))
 
 png(filename="~/Desktop/CSML/bioinformatics/coursework/figures/ROC_curve.png")
 g + theme(legend.position="top")
@@ -143,7 +141,8 @@ dev.off()
 
 # AUC table and mean AUC
 print("Mean AUC:")
-mean(auc_scores)
+(sum(test$class=='cyto')*auc_scores[1] + sum(test$class=='mito')*auc_scores[2] + sum(test$class=='nuclear')*auc_scores[2] +
+  sum(test$class=='secreted')*auc_scores[4]) /nrow(test)
 auc_scores <- data.frame(Class=c('cyto', 'mito', 'nuclear', 'secreted'), AUC_score=auc_scores)
 xtable(auc_scores)  # latex output
 

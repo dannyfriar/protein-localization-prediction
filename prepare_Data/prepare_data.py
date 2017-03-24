@@ -49,6 +49,7 @@ def count_hydrophobic(sequence):
 def fasta_to_pandas(file):
 	"""Takes a fasta sequence file, creates some features and converts to pandas dataframe"""
 	fasta_sequences = SeqIO.parse(open(file),'fasta')
+	non_standard_count = 0
 	
 	# Create ordered dict (include new features)
 	fasta_data = OrderedDict()
@@ -82,9 +83,18 @@ def fasta_to_pandas(file):
 		fasta_data['sequence'].append(sequence)
 		fasta_data['sequence_length'].append(len(sequence))
 		
-		# Remove letters not corresponding to amino acids
+		# Replace letters not corresponding to non-standard amino acids (and take count)
 		for letter in non_amino_letters:
-			sequence = sequence.replace(letter, '')
+			if sequence.count(letter) > 0:
+				non_standard_count += 1
+				break
+
+		sequence = sequence.replace('X', '')
+		sequence = sequence.replace('U', '')
+		sequence = sequence.replace('O', '')
+		sequence = sequence.replace('B', 'N')
+		sequence = sequence.replace('Z', 'Q')
+		sequence = sequence.replace('J', 'L')
 		
 		# Compute other features
 		proto_param = ProtParam.ProteinAnalysis(sequence)
@@ -110,7 +120,8 @@ def fasta_to_pandas(file):
 			fasta_data[key_string].append(sequence[:51].count(amino)/50)
 			key_string = amino + '_last50_count'
 			fasta_data[key_string].append(sequence[:51].count(amino)/50)
-		
+
+	print("... with non-standard AAs: %d" % non_standard_count)
 	return(pd.DataFrame.from_dict(fasta_data))
 
 

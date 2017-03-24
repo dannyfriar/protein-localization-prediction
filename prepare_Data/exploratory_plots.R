@@ -29,11 +29,15 @@ g + ylim(0, 200000)
 g <- ggplot(data=train, aes(x=class, y=isolectric_point, fill=class)) + geom_boxplot() + labs(y='Isolectric Point', x='Subcelluar Location') + guides(fill=FALSE)
 g
 
+# Plot of pct_hydrophobic against molecular weights
+g <- ggplot(data=train, aes(x=class, y=pct_hydrophobic, fill=class)) + geom_boxplot() + labs(y='Percent Hydrophobic', x='Subcelluar Location') + guides(fill=FALSE)
+g + ylim(0.45, 0.75)
+
 # Plot NLS signals counts against class
 g <- ggplot(data=train, aes(x=class, y=nls_count, fill=class)) + geom_boxplot() + labs(y='NLS signals', x='Subcelluar Location') + guides(fill=FALSE)
 g
 
-# Plot of sequence length against molecular weights
+# Plot of sequence length against class
 g <- ggplot(data=train, aes(x=class, y=sequence_length, fill=class)) + geom_boxplot() + labs(y='Sequence Length', x='Subcelluar Location') + guides(fill=FALSE)
 g + ylim(0, 1500)
 
@@ -43,7 +47,7 @@ g + ylim(0, 0.3)
 
 # Plot of C count against molecular weights
 g <- ggplot(data=train, aes(x=class, y=C_count, fill=class)) + geom_boxplot() + labs(y='Proportion of Cysteine AAs', x='Subcelluar Location') + guides(fill=FALSE)
-g + ylim(0, 0.075)
+g + ylim(0, 0.06)
 
 # Plot of K count against molecular weights
 g <- ggplot(data=train, aes(x=class, y=K_count, fill=class)) + geom_boxplot() + labs(y='K Count', x='Subcelluar Location') + guides(fill=FALSE)
